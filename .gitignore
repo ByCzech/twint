@@ -126,3 +126,7 @@ test_twint.py
 
 # database files
 *.db
+
+#project
+/data
+run.py

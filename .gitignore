@@ -115,14 +115,9 @@ ENV/
 *.json
 *.txt
 
-test_twint.py
-
 /.project
 /.pydevproject
 /.idea
-
-# virtual env
-/python3.10
 
 # database files
 *.db

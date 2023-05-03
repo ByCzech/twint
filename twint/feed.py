@@ -123,6 +123,9 @@ def parse_tweets(config, response):
                     }
                 feed.append(temp_obj)
         next_cursor = _get_cursor(response) # case 1
+    elif 'errors' in response:
+       msg = response['errors']
+       raise NoMoreTweetsException(msg)
     else:
         response = response['data']['user']['result']['timeline']
         entries = response['timeline']['instructions']

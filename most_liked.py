@@ -1,67 +1,41 @@
-import sys, os
+import sys, os, time
 from datetime import datetime, date, timedelta
 
-from classes.patient_api_client import PatientApiClient
+import twint.run
+from twint import Config
 import pandas as pd
 import csv
 
 
-def get_user_ids():
-    source_filename = sys.argv[1]
+def get_usernames(source_filename: str):
     return open(source_filename).read().splitlines()
 
 
-# def get_tweets(api_client, source_ids, week_date):
-#     start_time = get_datetime_iso(week_date, get_last_week)
-#     end_time = get_datetime_iso(week_date, get_week)
-#     return get_tweets(api_client, source_ids, start_time, end_time)
+def get_twint_config(username, start_datetime, end_datetime):
+    config = Config()
+    config.User_id = username
+    config.Since = start_datetime
+    config.Until = end_datetime
+    config.Utc = False
+    config.Replies = False
+    config.Impressions = True
+    config.Pandas = True
+    return config
 
-
-def get_tweets(api_client, source_ids, start_time, end_time):
-    params = {
-        "max_results": "100",
-        "exclude": ["replies"],
-        "tweet.fields": ["public_metrics,created_at"],
-        "user.fields":["username"],
-        "expansions":['author_id'],
-        "end_time": end_time,
-        "start_time": start_time
-    }    
+def get_tweets(source_names, start_time, end_time):
     df = pd.DataFrame(columns=['user_id', 'username', 'tweet_id', 'tweet_content', 'created_at', 'like_count', 'impression_count', 'quote_count', 'reply_count', 'retweet_count'])
-    for user_id in source_ids:
-        print(f"[{user_id}]] Getting tweets...")
-        tweets = api_client.handle_request_json('tweets', f'users/:{user_id}/tweets', params)
-        if "error" in tweets:
-            print(f"[{user_id}] ERROR: {tweets['error']}")
-            continue
-        if "errors" in tweets:
-            print(f"[{user_id}] ERROR: {tweets['errors']}")
-            continue
-        if "data" not in tweets:
-            print(f"[{user_id}] NO DATA FOUND: {tweets}")
-            continue
-        username = tweets['includes']['users'][0]['username']
-        if "meta" in tweets:
-            print(f"[{user_id}] ({username}) result count: {tweets['meta']['result_count']}")
-        else:
-            print(f"[{user_id}] ({username}) NO METADATA")
-        data_rows = []
-        for tweet in tweets['data']:
-            tweet_created_at = tweet['created_at']
-            created_at_datetime = datetime.fromisoformat(tweet_created_at.replace('Z', '+00:00'))
-            new_row = {'user_id': user_id,
-                       'username': username,
-                       'tweet_id': tweet['id'],
-                       'tweet_content': tweet['text'],
-                       'created_at': str(created_at_datetime.astimezone()),
-                       'like_count': tweet["public_metrics"]['like_count'],
-                       'impression_count': tweet["public_metrics"]['impression_count'],
-                       'quote_count': tweet["public_metrics"]['quote_count'],
-                       'reply_count': tweet["public_metrics"]['reply_count'],
-                       'retweet_count': tweet["public_metrics"]['retweet_count']
-                       }
-            data_rows.append(new_row)
-        df = pd.concat([df, pd.DataFrame.from_records(data_rows)])
+    for username in source_names:
+        print(f"[{username}]] Getting tweets...")
+        config = get_twint_config(username, start_time, end_time)
+        try:
+            twint.run.Search(config)
+            search_data = twint.storage.panda.User_df
+            print(search_data)
+            df.append(search_data)
+            # output = f'{df["id"].iloc[0]},"{df["name"].iloc[0]}",{source_name},{df["tweets"].iloc[0]},{df["join_date"].iloc[0]},{df["avatar"].iloc[0]},{df["followers"].iloc[0]},{df["following"].iloc[0]}'
+        except Exception as e:
+            print(f"Error: {e}")
+        time.sleep(3)
     return df
 
 
@@ -99,41 +73,36 @@ def get_tweets_once(api_client, source_ids):
     write_out_tweets(tweets, sys.argv[2])
 
 
-def get_tweets_between_weeks(api_client, source_ids, end_date, start_week_num=1):
-    if not os.path.exists("./output/most_liked3"):
-        os.mkdir("./output/most_liked3")
+def get_tweets_for_week(source_names, end_date, week_num=1):
+    if not os.path.exists("./output/most_liked"):
+        os.mkdir("./output/most_liked")
     
     year, end_week_num, day_of_week = end_date.isocalendar()
-    for week_num in range(start_week_num, end_week_num):
-        if week_num != 16:
-            continue
-        start = datetime.strptime(f"{year}-W{week_num}" + '-1', "%Y-W%W-%w")
-        start_str = 'T'.join(str(start.astimezone()).split())
-        end = datetime.strptime(f"{year}-W{week_num+1}" + '-1', "%Y-W%W-%w")
-        end_str = 'T'.join(str(end.astimezone()).split())
-        print(f"------ GETTING RESULTS FOR WEEK {week_num} -------")
-        print(f"------ FROM {start_str} TO {end_str}")
-        tweets_df = get_tweets(api_client, source_ids, start_str, end_str)
-        write_out_tweets(tweets_df, f"./output/most_liked3/{year}-W{week_num:02d}.csv")
+    start = datetime.strptime(f"{year}-W{week_num}" + '-1', "%Y-W%W-%w")
+    start_str = str(start)
+    end = datetime.strptime(f"{year}-W{week_num+1}" + '-1', "%Y-W%W-%w")
+    end_str = str(end)
+    print(f"------ GETTING RESULTS FOR WEEK {week_num} -------")
+    print(f"------ FROM {start_str} TO {end_str}")
+    tweets_df = get_tweets(source_names, start_str, end_str)
+    write_out_tweets(tweets_df, f"./output/most_liked3/{year}-W{week_num:02d}.csv")
     
 
 def main():
-    source_ids = get_user_ids()
-    api_client = PatientApiClient()
+    print("\n\n")
     
-    week_count = date.today().isocalendar()[1]
-    source_ids_count = len(source_ids)
-    print(f"NUMBER OF ACCOUNTS: {source_ids_count}")
-    print(f"NUMBER OF WEEKS: {week_count}")
-    print(f"NUMBER OF REQUESTS: {source_ids_count * week_count}")
-    print(f"ESTIMATED RUNNING TIME: {(source_ids_count * week_count // 1500) * 16} MINUTES")
-    
-    user_input = input("Write [y] if you'd like to continue: ")
-    if user_input.lower() != 'y':
-        print(" -- ABORTING --")
+    if (len(sys.argv) < 2):
+        print("NOT ENOUGH ARGUMENTS. PLEASE RUN THIS AS FOLLOWS:")
+        print("python most_liked.py SOURCE_FILE WEEK_NUM")
+        print("\n")
+        print("SOURCEFILE - text file with one username per line")
+        print("WEEK_NUM - number of week in current year")
         return
-
-    get_tweets_between_weeks(api_client, source_ids, date.today(), start_week_num=1)
+    
+    source_filename = sys.argv[1]
+    week_num = int(sys.argv[2])
+    source_names = get_usernames(source_filename)
+    get_tweets_for_week(source_names, date.today(), week_num)
 
 
 if __name__ == "__main__":

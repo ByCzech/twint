@@ -112,7 +112,11 @@ async def RequestUrl(config, init):
     _serialQuery = ""
     params = []
     _url = ""
-    _headers = [("authorization", config.Bearer_token), ("x-guest-token", config.Guest_token)]
+    _headers = [
+        ("authorization", config.Bearer_token), 
+        ("x-guest-token", config.Guest_token),
+        ("x-csrf-token", config.X_csrf_token),
+        ("Cookie", config.Cookie)]
 
     # TODO : do this later
     if config.Profile:

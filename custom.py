@@ -27,10 +27,10 @@ load_dotenv()
 x_csrf_token = os.environ.get("X_CSRF_TOKEN")
 cookie = os.environ.get("COOKIE")
 
-if x_csrf_token is not None and cookie is not None:
+if x_csrf_token is None or cookie is None:
+    print("Please specify correct X_CSRF_TOKEN and COOKIE values in .env file.")
+else:
     config.X_csrf_token = x_csrf_token
     config.Cookie = cookie
 
     twint.run.Search(config)
-else:
-    print("Please specify correct X_CSRF_TOKEN and COOKIE values in .env file.")

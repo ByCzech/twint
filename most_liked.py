@@ -12,6 +12,9 @@ def get_usernames(source_filename: str):
     return open(source_filename).read().splitlines()
 
 
+def get_filtered_and_sorted_filename(filename: str):
+    return "{0}_filtered.{1}".format(*filename.rsplit('.', 1))
+
 def get_twint_config(username, start_datetime, end_datetime):
     config = Config()
     config.User_id = username
@@ -26,9 +29,7 @@ def get_twint_config(username, start_datetime, end_datetime):
     return config
 
 def get_tweets(source_names, start_time, end_time, x_csrf_token, cookie):
-    # "id","conversation_id","created_at","date","timezone","place","tweet","language","hashtags","cashtags","user_id","user_id_str","username","name","day","hour","link","urls","photos","video","thumbnail","retweet","nlikes","nreplies","nretweets","nquotes","nimpressions","quote_url","search","near","geo","source","user_rt_id","user_rt","retweet_id","reply_to","retweet_date","translate","trans_src","trans_dest"
-    # "1655163119059054595","1655163119059054595",1683456613000.0,"2023-05-07 12:50:13","+0200","","Dnes jsem měl tu čest odstartovat jeden z nejprestižnějších běžeckých závodů – Pražský maraton. Když vidím tu rozmanitou skladbu běžců, je to obrovská motivace nejen pro mě, ale i pro ostatní. Je zároveň přenášený živě, a tak je Praha na obrazovkách lidí po celém světě.  https://t.co/I092d97043","cs","[]","[]",4136554833,"4136554833","prezidentpavel","Petr Pavel",7,"12","https://twitter.com/prezidentpavel/status/1655163119059054595","[]","['https://pbs.twimg.com/media/FvhSFVnWYAEnW00.jpg']",1,"https://pbs.twimg.com/media/FvhSFVnWYAEnW00.jpg",False,3487,95,80,10,140944,"","None","","","","","","","[]","","","",""
-    df = pd.DataFrame(columns=['user_id', 'username', 'name', 'tweet', 'date', 'nlikes', 'nimpressions', 'nquotes', 'nreplies', 'nretweets', 'reply_to'])
+    df = None
     for username in source_names:
         print(f"[{username}]] Getting tweets...")
         config = get_twint_config(username, start_time, end_time)
@@ -37,12 +38,10 @@ def get_tweets(source_names, start_time, end_time, x_csrf_token, cookie):
         try:
             twint.run.Search(config)
             search_data = twint.storage.panda.Tweets_df
-            # print(search_data)
             if df is None:
                 df = search_data
             else:
                 df = pd.concat([df, search_data], ignore_index=True)
-            # output = f'{df["id"].iloc[0]},"{df["name"].iloc[0]}",{source_name},{df["tweets"].iloc[0]},{df["join_date"].iloc[0]},{df["avatar"].iloc[0]},{df["followers"].iloc[0]},{df["following"].iloc[0]}'
         except Exception as e:
             print(f"Error: {e}")
         time.sleep(3)
@@ -50,10 +49,13 @@ def get_tweets(source_names, start_time, end_time, x_csrf_token, cookie):
 
 
 def write_out_tweets(tweets_df, filename):
-    # tweets_df.to_csv(filename, index=False, quoting=csv.QUOTE_NONNUMERIC)
+    tweets_df.to_csv(filename, index=False, quoting=csv.QUOTE_NONNUMERIC)
+    filtered_filename = get_filtered_and_sorted_filename(filename)
     tweets_df \
+        [['user_id', 'username', 'name', 'tweet', 'date', 'nlikes', 'nimpressions', 'nquotes', 'nreplies', 'nretweets', 'reply_to']] \
+        .query("nlikes > 9") \
         .sort_values(by=['nlikes'], ascending=False) \
-        .to_csv(filename, index=False, quoting=csv.QUOTE_NONNUMERIC)
+        .to_csv(filtered_filename, index=False, quoting=csv.QUOTE_NONNUMERIC)
 
 
 
@@ -103,10 +105,11 @@ def main():
     
     if (len(sys.argv) < 3):
         print("NOT ENOUGH ARGUMENTS. PLEASE RUN THIS AS FOLLOWS:")
-        print("python most_liked.py SOURCE_FILE WEEK_NUM OUTPUTFILE")
+        print("python most_liked.py SOURCE_FILE WEEK_NUM OUTPUT_FILE")
         print("\n")
         print("SOURCEFILE - text file with one username per line")
         print("WEEK_NUM - number of week in current year")
+        print("OUTPUT_FILE - output filename")
         return
     
     load_dotenv()

@@ -123,6 +123,11 @@ def parse_tweets(config, response):
                     }
                 feed.append(temp_obj)
         next_cursor = _get_cursor(response) # case 1
+    elif 'errors' in response:
+       msg = response['errors']
+       #todo: this should be a different type of exception,
+       # but this one is guaranteed to stop Search process, so I'll use this one for noew
+       raise NoMoreTweetsException(msg)
     else:
         response = response['data']['user']['result']['timeline']
         entries = response['timeline']['instructions']

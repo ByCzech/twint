@@ -1,5 +1,7 @@
 import twint.run
 from twint import Config
+import os
+from dotenv import load_dotenv
 
 
 
@@ -16,8 +18,19 @@ config.Impressions = True
 config.Store_csv = True
 
 ## NOTE: reads tweets from the newest to the oldest
-config.Since = "2012-12-20 20:30:15"
-config.Until = "2023-03-15 20:00:00"
+config.Since = "2023-04-01 20:30:15"
+config.Until = "2023-05-01 20:00:00"
 config.Output = "./output/impressions.csv"
 
-twint.run.Search(config)
+load_dotenv()
+
+x_csrf_token = os.environ.get("X_CSRF_TOKEN")
+cookie = os.environ.get("COOKIE")
+
+if x_csrf_token is not None and cookie is not None:
+    config.X_csrf_token = x_csrf_token
+    config.Cookie = cookie
+
+    twint.run.Search(config)
+else:
+    print("Please specify correct X_CSRF_TOKEN and COOKIE values in .env file.")

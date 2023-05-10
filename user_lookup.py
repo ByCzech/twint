@@ -32,6 +32,8 @@ def get_users_info(sourcefile: str, outputfile: str):
                 f.write('\n' + output)
             except Exception as e:
                 print(e)
+                output = f',,{source_name},,,,,'
+                f.write('\n' + output)
             # 3 seconds between requests seems to be enough 
             # to prevent twitter from blocking the twint guest token
             time.sleep(3)

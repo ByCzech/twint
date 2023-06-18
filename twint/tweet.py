@@ -51,6 +51,16 @@ def _get_in_reply_to_status(tw):
         return f"https://twitter.com/anyuser/status/{str(tw['in_reply_to_status_id'])}"
     return ""
 
+def _get_in_reply_to_user_id(tw):
+    if "in_reply_to_user_id" in tw:
+        return f"{str(tw['in_reply_to_user_id'])}"
+    return ""
+
+def _get_in_reply_to_username(tw):
+    if "in_reply_to_screen_name" in tw:
+        return f"{str(tw['in_reply_to_screen_name'])}"
+    return ""
+
 def _get_reply_to(tw):
     try:
         reply_to = [
@@ -106,6 +116,8 @@ def Tweet(tw, config):
     t.place = tw['geo'] if 'geo' in tw and tw['geo'] else ""
     t.timezone = _dt.strftime("%z")
     t.in_reply_to_status_id = _get_in_reply_to_status(tw)
+    t.in_reply_to_user_id = _get_in_reply_to_user_id(tw)
+    t.in_reply_to_username = _get_in_reply_to_username(tw)
     t.mentions = _get_mentions(tw)
     t.reply_to = _get_reply_to(tw)
     try:

@@ -82,6 +82,8 @@ def getText(tw, config):
 def Tweet(tw, config):
     """Create Tweet object
     """
+    if config.Debug:
+        print(tw)
     logme.debug(__name__ + ':Tweet')
     t = tweet()
     t.id = int(tw['id_str'])

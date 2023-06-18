@@ -174,7 +174,7 @@ async def Users(u, config, conn):
     logme.debug(__name__ + ':User')
     global users_list
 
-    user = User(u)
+    user = User(u, config)
     output = format.User(config.Format, user)
 
     if config.Database:

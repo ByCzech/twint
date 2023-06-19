@@ -48,7 +48,8 @@ def _get_mentions(tw):
 
 def _get_in_reply_to_status(tw):
     if "in_reply_to_status_id" in tw:
-        return f"https://twitter.com/anyuser/status/{str(tw['in_reply_to_status_id'])}"
+        # return f"https://twitter.com/anyuser/status/{str(tw['in_reply_to_status_id'])}"
+        return f"{str(tw['in_reply_to_status_id'])}"
     return ""
 
 def _get_in_reply_to_user_id(tw):

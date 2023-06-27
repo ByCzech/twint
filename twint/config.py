@@ -3,6 +3,7 @@ from typing import Optional
 
 @dataclass
 class Config:
+    Debug: bool = False
     Username: Optional[str] = None
     User_id: Optional[str] = None
     Search: Optional[str] = None

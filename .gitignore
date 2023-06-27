@@ -121,3 +121,7 @@ ENV/
 
 # database files
 *.db
+
+#project
+/data
+run.py

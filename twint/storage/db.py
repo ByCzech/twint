@@ -80,6 +80,9 @@ def init(db):
                     photos text,
                     thumbnail text,
                     quote_url text,
+                    in_reply_to_status_id text,
+                    in_reply_to_user_id text,
+                    in_reply_to_username text,
                     video integer,
                     geo text,
                     near text,
@@ -272,6 +275,9 @@ def tweets(conn, Tweet, config):
                     ",".join(Tweet.photos),
                     Tweet.thumbnail,
                     Tweet.quote_url,
+                    Tweet.in_reply_to_status_id,
+                    Tweet.in_reply_to_user_id,
+                    Tweet.in_reply_to_username,
                     Tweet.video,
                     Tweet.geo,
                     Tweet.near,
@@ -280,7 +286,7 @@ def tweets(conn, Tweet, config):
                     Tweet.translate,
                     Tweet.trans_src,
                     Tweet.trans_dest)
-        cursor.execute('INSERT INTO tweets VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', entry)
+        cursor.execute('INSERT INTO tweets VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', entry)
 
         if config.Favorites:
             query = 'INSERT INTO favorites VALUES(?,?)'

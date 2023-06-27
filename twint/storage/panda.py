@@ -94,6 +94,8 @@ def update(object, config):
             "nlikes": int(Tweet.likes_count),
             "nreplies": int(Tweet.replies_count),
             "nretweets": int(Tweet.retweets_count),
+            "nquotes": int(Tweet.quotes_count),
+            "nimpressions": int(Tweet.impressions_count),
             "quote_url": Tweet.quote_url,
             "search": str(config.Search),
             "near": Tweet.near,

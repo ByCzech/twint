@@ -83,5 +83,10 @@ class Config:
     Backoff_exponent: float = 3.0
     Min_wait_time: int = 0
     Bearer_token: str = None
+    X_csrf_token: str = None
+    Cookie: str = None
     Guest_token: str = None
     deleted: list = None
+    Utc: bool = False
+    Full_text: bool = False
+    Impressions: bool = None

@@ -115,7 +115,9 @@ ENV/
 *.json
 *.txt
 
-test_twint.py
-
 /.project
 /.pydevproject
+/.idea
+
+# database files
+*.db

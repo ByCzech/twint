@@ -20,7 +20,7 @@ def get_users_info(sourcefile: str, outputfile: str):
 
     if not os.path.exists(outputfile):
         with open(outputfile, "w+") as f:
-            f.write(f'id,name,username,tweets,media,likes,join_datetime,following,followers,bio,url,avatar,note')
+            f.write(f'id,name,username,bio,tweets,media,likes,join_datetime,following,followers,bio,url,avatar,note')
 
     with open(outputfile, "a", encoding='utf-8') as f:
         for source_name in source_names:
@@ -28,7 +28,7 @@ def get_users_info(sourcefile: str, outputfile: str):
             try:
                 twint.run.Lookup(config)
                 df = twint.storage.panda.User_df
-                output = f'{df["id"].iloc[0]},"{df["name"].iloc[0]}",{source_name},{df["tweets"].iloc[0]},{df["media"].iloc[0]},{df["likes"].iloc[0]},{df["join_datetime"].iloc[0]},{df["following"].iloc[0]},{df["followers"].iloc[0]},"{df["bio"].iloc[0]}",{df["url"].iloc[0]},{df["avatar"].iloc[0]},'
+                output = f'{df["id"].iloc[0]},"{df["name"].iloc[0]}",{source_name},"{df["bio"].iloc[0]}",{df["tweets"].iloc[0]},{df["media"].iloc[0]},{df["likes"].iloc[0]},{df["join_datetime"].iloc[0]},{df["following"].iloc[0]},{df["followers"].iloc[0]},"{df["bio"].iloc[0]}",{df["url"].iloc[0]},{df["avatar"].iloc[0]},'
                 f.write('\n' + output)
             except Exception as e:
                 print(e)
